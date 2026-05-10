@@ -14,20 +14,19 @@ android {
         versionCode = 2
         versionName = "2.0"
     }
-
+	
     signingConfigs {
-        // 'release' block implicitly creates a signing config named "release"
-        release {
-            storeFile = file(project.property("RELEASE_STORE_FILE"))
-            storePassword = project.property("RELEASE_STORE_PASSWORD") as String
-            keyAlias = project.property("RELEASE_KEY_ALIAS") as String
-            keyPassword = project.property("RELEASE_KEY_PASSWORD") as String
+        create("release") {
+            storeFile = file(project.findProperty("RELEASE_STORE_FILE") as String)
+            storePassword = project.findProperty("RELEASE_STORE_PASSWORD") as String
+            keyAlias = project.findProperty("RELEASE_KEY_ALIAS") as String
+            keyPassword = project.findProperty("RELEASE_KEY_PASSWORD") as String
         }
     }
 
     buildTypes {
         release {
-            signingConfig = signingConfigs.release   // or signingConfigs.getByName("release")
+            signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -48,4 +47,6 @@ android {
 
 dependencies {
     implementation("androidx.appcompat:appcompat:1.7.0")
+    // If you want to use Material Design for the launcher layout (optional)
+    // implementation("com.google.android.material:material:1.12.0")
 }
