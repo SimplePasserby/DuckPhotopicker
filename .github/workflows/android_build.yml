@@ -57,6 +57,10 @@ jobs:
           echo "KEY_ALIAS=duck" >> $GITHUB_ENV
           echo "KEY_PASS=${{ secrets.DUCKKEYPASS }}" >> $GITHUB_ENV
 
+      - name: Verify keystore
+        run: |
+          keytool -list -keystore duck.keystore -storepass ${{ secrets.DUCKKEYPASS }} 
+
       - name: Add signing config to gradle.properties
         run: |
           echo "RELEASE_STORE_FILE=${{ env.KEYSTORE_FILE }}" >> gradle.properties
