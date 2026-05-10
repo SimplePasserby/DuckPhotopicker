@@ -52,8 +52,15 @@ jobs:
       - name: Decode and setup keystore
         run: |
           echo "${{ secrets.DUCKSIGNINGKEY }}" | base64 -d > duck.keystore
+          echo ""
           echo "${{ secrets.DUCKSIGNINGKEY }}" 
+          echo ""
+          echo "now base part" 
+          echo ""
           echo "${{ secrets.DUCKSIGNINGKEY }}" | base64 -d
+          echo ""
+          echo "going on" 
+          echo ""
           echo "KEYSTORE_FILE=${{ github.workspace }}/duck.keystore" >> $GITHUB_ENV
           echo "KEYSTORE_PASS=${{ secrets.DUCKKEYPASS }}" >> $GITHUB_ENV
           echo "KEY_ALIAS=duck" >> $GITHUB_ENV
