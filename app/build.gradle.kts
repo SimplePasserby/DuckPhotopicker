@@ -11,13 +11,23 @@ android {
         applicationId = "com.duck.photopicker"
         minSdk = 24
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "2.0"
+    }
+	
+    signingConfigs {
+        release {
+            storeFile file(project.property('RELEASE_STORE_FILE'))
+            storePassword project.property('RELEASE_STORE_PASSWORD')
+            keyAlias project.property('RELEASE_KEY_ALIAS')
+            keyPassword project.property('RELEASE_KEY_PASSWORD')
+        }
     }
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            signingConfig signingConfigs.release
+			isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
