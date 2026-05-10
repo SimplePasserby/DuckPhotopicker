@@ -51,15 +51,10 @@ jobs:
 
       - name: Decode and setup keystore
         run: |
-          echo "${{ secrets.DUCKSIGNINGKEY }}" | base64 -d > duck.keystore
+          printf "${{ secrets.DUCKSIGNINGKEY }}" > duck64 
+          cat duck64 | base64 -d > duck.keystore
           echo ""
-          echo "${{ secrets.DUCKSIGNINGKEY }}" 
-          echo ""
-          echo "now base part" 
-          echo ""
-          echo "${{ secrets.DUCKSIGNINGKEY }}" | base64 -d
-          echo ""
-          echo "going on" 
+          cat duck64 
           echo ""
           echo "KEYSTORE_FILE=${{ github.workspace }}/duck.keystore" >> $GITHUB_ENV
           echo "KEYSTORE_PASS=${{ secrets.DUCKKEYPASS }}" >> $GITHUB_ENV
@@ -68,7 +63,7 @@ jobs:
 
       - name: Verify keystore
         run: |
-          keytool -list -keystore duck.keystore -storepass ${{ secrets.DUCKKEYPASS }} 
+          keytool -list -v -keystore duck.keystore -storepass ${{ secrets.DUCKKEYPASS }} 
 
       - name: Add signing config to gradle.properties
         run: |
