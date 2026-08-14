@@ -25,7 +25,8 @@
             android:exported="true"
             android:excludeFromRecents="true"
             android:taskAffinity=""
-            android:launchMode="singleInstance"
+            android:launchMode="singleTop"
+            android:noHistory="true"
             android:theme="@android:style/Theme.Translucent.NoTitleBar">
 
             <!-- Steal GET_CONTENT (priority > 105) -->
@@ -38,17 +39,22 @@
             </intent-filter>
 
             <!-- Steal PICK_IMAGES -->
+            <!-- FIX #1: Add CATEGORY_OPENABLE to match the Android protocol
+                 and ensure the activity actually intercepts these intents. -->
             <intent-filter android:priority="120">
                 <action android:name="android.provider.action.PICK_IMAGES" />
                 <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.OPENABLE" />
                 <data android:mimeType="image/*" />
                 <data android:mimeType="video/*" />
             </intent-filter>
 
             <!-- Steal USER_SELECT_IMAGES_FOR_APP -->
+            <!-- FIX #1: Same as above, add CATEGORY_OPENABLE. -->
             <intent-filter android:priority="120">
                 <action android:name="android.provider.action.USER_SELECT_IMAGES_FOR_APP" />
                 <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.OPENABLE" />
                 <data android:mimeType="image/*" />
                 <data android:mimeType="video/*" />
             </intent-filter>
