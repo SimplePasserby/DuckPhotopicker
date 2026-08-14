@@ -26,7 +26,6 @@
             android:excludeFromRecents="true"
             android:taskAffinity=""
             android:launchMode="singleTop"
-            android:noHistory="true"
             android:theme="@android:style/Theme.Translucent.NoTitleBar">
 
             <!-- Steal GET_CONTENT (priority > 105) -->
