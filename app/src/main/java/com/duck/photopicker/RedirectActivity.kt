@@ -28,8 +28,13 @@ class RedirectActivity : Activity() {
         // DocumentsUI is already running (or has finished). We must not
         // launch a second picker, otherwise we'd stack multiple pickers
         // and lose the result chain.
+        //
+        // FIX #2: Additionally, we must finish() here. Otherwise the
+        // activity remains alive with no UI, and the caller never
+        // receives a result.
         // ----------------------------------------------------------------
         if (savedInstanceState != null) {
+            finish()
             return
         }
 
@@ -94,9 +99,22 @@ class RedirectActivity : Activity() {
             // We therefore construct a fresh ACTION_GET_CONTENT intent
             // targeted at the real PickActivity, and we manually copy
             // the relevant extras (max count, allow multiple, etc.).
+            //
+            // FIX #4: Copy the grant-related flags from the original intent.
+            // If the original caller set FLAG_GRANT_READ_URI_PERMISSION or
+            // other grant flags, DocumentsUI may need them to grant our own
+            // activity access to the selected URI(s). Without them, the
+            // later grantUriPermission() call in onActivityResult() can fail.
             // ----------------------------------------------------------------
             val max = original.getIntExtra(MediaStore.EXTRA_PICK_IMAGES_MAX, 1)
             val allowMultiple = max > 1
+
+            val grantFlags = original.flags and (
+                Intent.FLAG_GRANT_READ_URI_PERMISSION or
+                Intent.FLAG_GRANT_WRITE_URI_PERMISSION or
+                Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION or
+                Intent.FLAG_GRANT_PREFIX_URI_PERMISSION
+            )
 
             docsIntent = Intent(Intent.ACTION_GET_CONTENT).apply {
                 setClassName(
@@ -113,8 +131,28 @@ class RedirectActivity : Activity() {
                     remove(Intent.EXTRA_ALLOW_MULTIPLE)
                 }
                 putExtras(safeExtras)
+
+                // Copy the grant flags we computed above.
+                flags = grantFlags
             }
         }
+
+        // ----------------------------------------------------------------
+        // FIX #1 (previous): Some callers (e.g. Opera Mini, Telegram) send
+        // their original picker intent with FLAG_ACTIVITY_FORWARD_RESULT set.
+        // When we clone that intent above and then call
+        // startActivityForResult(), Android throws:
+        //
+        //   FORWARD_RESULT_FLAG used while also requesting a result
+        //
+        // because FORWARD_RESULT_FLAG tells the system to forward the result
+        // to the next activity, while startActivityForResult() asks for the
+        // result to be delivered to us. These are mutually exclusive.
+        //
+        // We therefore strip only FLAG_ACTIVITY_FORWARD_RESULT while leaving
+        // all other flags (notably FLAG_GRANT_READ_URI_PERMISSION) intact.
+        // ----------------------------------------------------------------
+        docsIntent.flags = docsIntent.flags and Intent.FLAG_ACTIVITY_FORWARD_RESULT.inv()
 
         startActivityForResult(docsIntent, REQUEST_CODE_DOCSUI)
     }
@@ -125,26 +163,38 @@ class RedirectActivity : Activity() {
         if (requestCode == REQUEST_CODE_DOCSUI) {
             if (resultCode == Activity.RESULT_OK && data != null) {
                 // Identify the app that originally called us.
-                val callerPackage = callingPackage ?: packageName
+                val callerPackage = callingPackage
                 val result = Intent()
 
                 // Grant the caller persistent read access to every returned URI.
                 val readFlag = Intent.FLAG_GRANT_READ_URI_PERMISSION
                 result.flags = readFlag
 
+                // FIX #3: callingPackage can be null for various legitimate
+                // reasons. We must not fall back to packageName, because that
+                // would grant permissions to ourselves instead of the real
+                // caller. If it is null, we rely solely on the result intent's
+                // FLAG_GRANT_READ_URI_PERMISSION to grant access when the
+                // system delivers the result.
+                fun grantToCaller(uri: Uri) {
+                    if (callerPackage != null) {
+                        grantUriPermission(callerPackage, uri, readFlag)
+                    }
+                }
+
                 // Handle both single and multiple URI selections.
                 if (data.clipData != null) {
                     val clip = data.clipData!!
                     for (i in 0 until clip.itemCount) {
                         clip.getItemAt(i).uri?.let { uri ->
-                            grantUriPermission(callerPackage, uri, readFlag)
+                            grantToCaller(uri)
                         }
                     }
                     result.clipData = clip
                 } else {
                     val singleUri = data.data
                     if (singleUri != null) {
-                        grantUriPermission(callerPackage, singleUri, readFlag)
+                        grantToCaller(singleUri)
                         result.data = singleUri
                     }
                 }
