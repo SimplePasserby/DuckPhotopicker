@@ -14,7 +14,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)   // we'll create this layout soon
 
         Toast.makeText(this, 
-            "Tap 'Set as default' below to activate Duck PhotoPicker",
+            "no need to do anything here",
             Toast.LENGTH_LONG).show()
 
         // Optional: open the "Open by default" settings page directly
