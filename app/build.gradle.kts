@@ -11,7 +11,7 @@ android {
         applicationId = "com.duck.photopicker"
         minSdk = 24
         targetSdk = 34
-        versionCode = 4
+        versionCode = 5
         versionName = "0.66"
     }
 	
